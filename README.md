@@ -1,47 +1,50 @@
 # NAT-ACL
-mots clés :
 
-NAT dynamique
-surcharge NAT
-pool adresses publiques
-même adresses publiques
-requêtes WEB
-adressage privé
+## Mots clés
 
-contexte :
-pourquoi ? fournir plusieurs adresses publiques / add privée -> publique
+ * NAT dynamique : Network Address Translation
+ * Surcharge NAT : 
+ * Pool adresses publiques : 
+ * Même adresses publiques : 
+ * Requêtes WEB : 
+ * Adressage privé : 
 
-Quoi ?	configurer NAT dynamique / rediriger sur une add publique une application
-comment ? en utilisant NAT
+## Contexte
+### Pourquoi ?
+Fournir plusieurs adresses publiques / add privée -> publique
 
-contraintes :
+### Quoi ?
+Configurer NAT dynamique / rediriger sur une add publique une application
 
-utiliser le pool d’adresses IP fournis
-problématique :
+### Comment ?
+En utilisant NAT
 
+## Contraintes
+ * Utiliser le pool d’adresses IP fournis
+
+## Problématique
 Comment transcrire plusieurs add privées en une adresse publique en configurant un NAT dynamique ?
 
-généralisation :
+## Généralisation
+ * Changement de référentiel
+ * MCO
 
-changement de référentiel
-MCO
+## Hypothèses
+ * On peut rediriger les req web avec le socket
+ * Cmd ip nat pool ip1 ip2 -> range
+ * Cmd fonctionnent pas car par dans le mode de configuration
+ * Utiliser une wilde card netmask
 
-Hypothèses :
+## Plan d’action
+### Etude
 
-On peut rediriger les req web avec le socket
-Cmd ip nat pool ip1 ip2 -> range
-Cmd fonctionnent pas car par dans le mode de configuration
-utiliser une wilde card netmask
+ * Etudier le NAT (statique/dynamique)
 
-plan d’action :
+ * Etudier PAT
+ 
+ * ACL
+ 
+ * Cmds de configs (prosit)
 
-etude:
-
-étudier le NAT (statique/dynamique)
-étudier PAT
-ACL
-cmds de configs (prosit)
-
-réalisation:
-
-packet tracer
+### Réalisation
+ * Packet Tracer
