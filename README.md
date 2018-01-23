@@ -3,10 +3,15 @@
 mots clés :
 
 **NAT dynamique :** plusieurs @IP publique & privés (cf en bas)
-**surcharge NAT :**  Il s'agit d'une entrée de table de traduction qui contient des informations d'@IP et des ports de source/ de destination, appellée PAT ou surcharge. PAT, c'est quand le FAI fournit plusieurs @publiques, on l'utilise pour configurer et utiliser un pool. On divise les ports par @IP globales en différentes plages.
+
+**surcharge NAT :**  Il s'agit d'une entrée de table de traduction qui contient des informations d'@IP et des ports de source/ de destination, appellée PAT ou surcharge. PAT, c'est quand le FAI fournit plusieurs @publiques, on l'utilise pour configurer et utiliser un pool. On divise les ports par @IP globales en différentes plages.*
+
 **pool adresses publiques** = piscine d'@ publiques = plusieurs @IP publiques réservés.
+
 **même adresses publiques :** /
+
 **requêtes WEB** : /
+
 **adressage privé** : Qui est unique sur le réseau local.
 
 contexte :
@@ -53,9 +58,13 @@ packet tracer
 Pour parier au manque d'@ IP Libres, ce sont des @codés sur 4 octets, le principe est de remplacer à la volée les champs d'adresses privés dans les paquets qui sont destinés à un autre réseau.
 
 On retrouve dans le NAT quatre types d'adresses :
-- **Inside local address** : @IP assignée à un hôte à l'intérieur d'un réseau d'extrémité. Il s'agit d'une @IP privée
+
+- **Inside local address** : @IP assignée à un hôte à l'intérieur d'un réseau d'extrémité. Il s'agit d'une @IP privée.
+
 - **Inside global address** : La ou les @IP publiques qui représentent les @IP locales internes, dites "routables" du NAT.
+
 - **Outside local address** : @IP d'un hôte telle qu'elle apparaît aux hôtes d'un réseau internet. Il ne s'agit pas nécessairement d'une @ légimite routable.
+
 - **Outside global address** : @IP réeele routable d'un hôte qui se situe à l'extérieur du réseau du routeur NAT.
 
 
