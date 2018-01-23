@@ -101,6 +101,34 @@ inc:
 ### **ACL**
 ### **cmds de configs (prosit)**
 
+config un NAT:
+
+première chose à faire : indiquer au routeur l(es) interface(s) d'entrée et celle(s) de sortie du réseau privé 
+	
+	R1(config-if)#ip nat inside
+	R1(config-if)#ip nat outside
+
+config statique : on indique au NAT que l'adresse privée doit être traduite par la publique à la sortie et l'inverse à l'entrée 
+
+	R1(config)#ip nat inside source static 192.168.1.100 201.49.10.30
+
+check la table NAT (le log)
+
+	R1#show ip nat translations
+
+NAT avec pool d'adresses:
+
+	R1(config)#ip nat pool POOL-NAT-LAN2 201.49.10.17 201.49.10.30 netmask 255.255.255.240
+
+on créé une plage d'adresse nommée POOL-NAT-LAN2 utilisant les adresse 201.49.10.17-30
+
+on défini ensuite les ip sources qu'on peut traduire
+
+	R1(config)#access-list 1 deny 192.168.1.100
+	R1(config)#access-list 1 permit 192.168.1.0 0.0.0.255
+
+ici on bann 192.168.1.100
+
 ## Réalisation:
 
 ### **Packet tracer (WS)**
