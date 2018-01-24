@@ -1,4 +1,5 @@
 
+
 # NAT-ACL
 mots clés :
 
@@ -50,7 +51,7 @@ packet tracer
 
 ## 1 - NAT : Translation d'adresses - Principes de bases  
 
-Pour parier au manque d'@ IP Libres, ce sont des @codés sur 4 octets, le principe est de remplacer à la volée les champs d'adresses privés dans les paquets qui sont destinés à un autre réseau.
+Pour parier au manque d'@IPv4 Libres, ce sont des @codés sur 4 octets, le principe est de remplacer à la volée les champs d'adresses privés dans les paquets qui sont destinés à un autre réseau.
 
 On retrouve dans le NAT quatre types d'adresses :
 - **Inside local address** : @IP assignée à un hôte à l'intérieur d'un réseau d'extrémité. Il s'agit d'une @IP privée
@@ -61,12 +62,13 @@ On retrouve dans le NAT quatre types d'adresses :
 
 **NAT BASIQUE**
 
-Attribuer de façon automatique une @IP à une autre. Il suffit de modifier le paquet, en ayant le même nombre d'IP ext que d'IP privés.
+Attribuer de façon automatique une @IP à une autre. Il suffit de modifier le paquet, en ayant le même nombre d'IP ext que d'IP privés.1 @privée avec 1@publique.
 
 **NAT dynamique**
 
 Il peut y avoir plusieurs IP extérieures tout comme plusieurs IP privées. Cela entraine nécessairement un suivi de la connexion, car NAT attribue l'IP ext lors d'une requête qui provient d'un réseau privé.
 A l'inverse, il doit pouvoir "discriminer" les paquets lors de  la réception pour attribuer à une @IP sur un réseau privé --> Problème : On est limités au réception sur le réseau local par le nbr d'adresses IP publique que l'on dispose pour traiter simultanément.
+Comme basique, mais on pioche sur une pool.
 
 **NAT MASQ** (Network Address and Port Translation) :
 
@@ -86,7 +88,6 @@ C'est appellé MASQ car faire cette opération est comparable à une attaque du 
 
 **Bi-Directional NAT**
 
-
 A la différence des deux précedents, il permet à des machines distantes d'accéder à des machines du réseau privé (contrairement au Port Forwarding) qui se limitte aux services. La passerelle répond par sa propre @IP tout en gardant en mémoire l'association entre l'@IP distante et @IP requise pour le service, ainsi les paquets sont transférés vers la machine sur le réseau local.
 Le problème vient du service DNS qui peut-être couteux (peu sécurisé), cependant, c'est utile si c'est pour connecter plusieurs réseaux privés car les serveurs DNS sont mieux maîtrisés.
 
@@ -97,14 +98,12 @@ Utile quand plusieurs réseaux privés sont interconnectés, il permet de résou
 
 **NAT avec Serveur virtuel / Load Balancing**
 
-Évolution des techniques de NAT qui permet d'optimiser leurs implémentations. 
+On a une machine virtuelle qui sert de NAT virtuel, a cette machine est associée plusieurs machines réelles. 
+Quand une nouvelle machine se connecte, elle passera par ce NAT virtuel, et utilisera une des @IP des machines réelle pour se connecter sur internet. 	C'est le NAT qui s'occupe de faire la translation, qui trasnmet la requête et la connexion associée, il sert de passerelle.
 
-On fait correspondre une machine inexistante, (sur une seule IP) par plusieurs machines réelles, qui ont leurs propres adresses.
-Ainsi les requêtes reçus sont adressés à un ou plusieurs @ correspondant à la passerelle. C'est donc la machine non réelle, où est située le NAT qui remplacera l'adresse virtuelle par réelle des machines qui l'implémente, qui transmet la requête et la connexion associée.
+La sélection de l'adresse réelle peut se faire sur la base de la charge de travail de la machine correspondante, et si le NAT est surcharé ,on peut prendre un autre NAT moins surchargé (une autre machine non réelle).
 
-LA sélection de l'adresse réelle peut se faire sur la base de la charge de travail de la machine correspondante, et si le NAT est surcharé ,on peut prendre un autre NAT moins surchargé (une autre machine non réelle).
-
-NB : Il est également possible d'utiliser des routes virtuelles sir le NAT est sur le routeur, la pasaserelle possédant plusieurs interfaces, il peut choisir laquelle il souhaite en fonction de la charge de trafic.
+NB : Il est également possible d'utiliser des routes virtuelles sur le NAT est sur le routeur, la passerelle possédant plusieurs interfaces, il peut choisir laquelle il souhaite en fonction de la charge de trafic.
 
 ## 2 - Avantages /  Inconvénients   
 
@@ -116,7 +115,7 @@ NB : Il est également possible d'utiliser des routes virtuelles sir le NAT est 
 
 ## 3 - Sécurités & NAT :
 
-- Casse tout le contrôle d'intégrité au niveau IP et au niveau Transport (@ dans checksum)
+- Casse tout le contrôle d'intégrité au niveau IP et au niveau Transport (@ dans checksum) (Il doit donc les recalculer)ii
 - Protocoles IP comme IPSec incompatible avec le NAT
 - Impossible de chiffrer les infos puisque NAT les utilises (couches "hautes").
 
@@ -127,8 +126,43 @@ NB : Il est également possible d'utiliser des routes virtuelles sir le NAT est 
 ## 4 - Configurer son NAT :
 https://www.ciscomadesimple.be/2013/04/06/configuration-du-nat-sur-un-routeur-cisco/
 
-*$ip nat inside*
+*$ip nat inside* ou ip nat outside --> à indiquer sur chaque interface indiquant si on est à l'intérieur ou à l'extérieur du réseau.
 
-*$ip nat pool*
 
-{...}
+**NAT STATIQUE**
+
+*R1(config)#ip nat inside source static 192.168.1.100 201.49.10.30*
+
+*R1#show ip nat translations*  -> Vérifier la config
+
+*SP#debug ip packet* -> Vérifier les paquets qui passent par le router 
+
+**Avec une pool d'adresse**
+
+*R1(config)#ip nat pool POOL-NAT-LAN2 201.49.10.17 201.49.10.30 netmask 255.255.255.240* -> Tranche d'adresses
+
+--> Gestion des deny
+
+*R1(config)#access-list 1 deny 192.168.1.100*
+
+*R1(config)#access-list 1 permit 192.168.1.0 0.0.0.255*
+
+-> Configurer le NAT lui même 
+
+*R1(config)#ip nat inside source list 1 pool POOL-NAT-LAN2* 
+
+"On instruit donc ici le routeur de créer dynamiquement une translation pour les paquets arrivant sur une interface « inside » routés par une interface « outside » dont l’adresse IP source correspond à l’ACL 1 et de remplacer l’IP source par une de celles comprises dans le pool POOL-NAT-LAN2."
+
+*Pour toute adresse IP privée qui n'est pas comprise dans la pool, on utilise le mot overload, ça passe en PAT, et on fait donc une surcharge c'est à dire que 2 postes partagent la même IP, sans oublier de translater les n° de port*
+
+**Configuration du NAT dynamique avec surcharge (sans pool)**
+
+-> Gestion des deny
+
+*R1(config)#access-list 2 permit 192.168.0.0 0.0.0.255*
+
+-> On fait tout passer en overload
+
+*R1(config)#ip nat inside source list 2 interface serial 0/0 overload*
+
+-> debug avec debug ip packets
