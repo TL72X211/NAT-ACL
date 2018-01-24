@@ -2,12 +2,12 @@
 
 ## Mots clés :
 
-* NAT dynamique
-* surcharge NAT
-* pool adresses publiques
-* même adresses publiques
-* requêtes WEB
-* adressage privé
+* NAT dynamique: association many to many d'iP publique et privé
+* surcharge NAT: PAT faire passer plusieurs IP privés sur une IP publique en les différenciant par les n° de ports
+* pool adresses publiques: -
+* même adresses publiques: -
+* requêtes WEB: -
+* adressage privé: -
 
 ## Contexte :
 
@@ -47,12 +47,31 @@ Network Address translaton, RFC 3022, pratique extrêmement courante créée pou
 
 ![](picsNico/nat.jpg)
 
+Il existe 4 type d'adresses NAT :
+
+* inside address : cela du poste qui est traduite
+* outside address: cela de la destination
+
+Ces deux sont eux même séparés en deux:
+
+* local address : apparaît dans le réseau privée (inside network)
+* global address : apparaît dans le réseau publique (outside network)
+
+on a donc :
+
+* inside local address: adresse de la source vue depuis le réseau local
+* inside global address: adresse de la source vue sur le réseau publique
+* outside global address: adresse de la destination vue sur le réseau publique
+* outside local address : adresse de la déstination vue depuis le réseau local 
+
 techniques de traduction:
 
 déterminé par la topologie du réseau privé, le nombre de machines, le nombre d'@ IP publiques et les besoins en termes de services, d'accessibilité et de visibilité de l'extérieur.
 
-**NAT de base**, statique, attribue de façon automatique une IP à une autre. nb d'IP publique = nb d'IP privé (pas très utile pour le problème d'IP public donc)
-**NAT dynamique**, aucune association prédéfinie entre IP publique et privée. Le NAT attribue l'IP extérieure lors de la requête initiale qui provient du réseau privé,  il doit ensuite pouvoir discriminer les paquets entrants de façon à pouvoir leur attribuer à chacun l'IP correspondante sur le réseau privé, il doit donc suivre à qui il attribue quelle IP. On rencontre un problème si on n'a pas autant d'IP publiques que privés, si toutes les adresses publiques sont utilisées aucun postes supplémentaire du réseau privé ne peut accéder à internet
+**NAT de base(statique)**,one to one, statique, attribue de façon automatique une IP à une autre. nb d'IP publique = nb d'IP privé (pas très utile pour le problème d'IP public donc)
+**NAT dynamique**,many to many, aucune association prédéfinie entre IP publique et privée. Le NAT attribue l'IP extérieure lors de la requête initiale qui provient du réseau privé,  il doit ensuite pouvoir discriminer les paquets entrants de façon à pouvoir leur attribuer à chacun l'IP correspondante sur le réseau privé, il doit donc suivre à qui il attribue quelle IP. On rencontre un problème si on n'a pas autant d'IP publiques que privés, si toutes les adresses publiques sont utilisées aucun postes supplémentaire du réseau privé ne peut accéder à internet
+**PAT (Port Address Translation)**,many to one, aka overloading Utilise les ports pour différencier les connexions (avec 65536 port il y a de la marge) ce qui lui permet de traduire plusieurs ip privée en une même adresse publique. Il existe différents type de PAT. PAT traite différemment les paquets ne possédant pas de numéro de port, ex ICMPv4. Il traite chaque protocole différemment, par exemple ICMPv4 utilise un ID de requête qui s'incrément e à chaque requête t PAT utilise cet ID
+ 
 **NAPT MASQ**, Network address ans Port Translation permet de résoudre le problème de bijection IP privée/publique, il permet à plusieurs machines de partager une IP publique.
 Pour savoir à quelle machine privée les paquets reçus sont destinés NAT conserve une trace plus complète des paramètres de chaque connexion :
 
@@ -66,7 +85,7 @@ MASQ provient du fait que cette opération est comparable à une attaque du type
 
 **NAPT Redirect/Port Forwarding** comme le NAPT MASQ mais avec des services de redirection des flux entrants ou sortants. le Port Forwarding permet à l'extérieur d'accéder à un service (serveur WEB ou autre) qui est en fait basé sur une machine de réseau privé : la machine distante pense communiquer avec la machine hébergeant le NAT alors qu'en fait celui-ci redirige le flux vers la machine correspondant réellement à ce service.
 
-**Bi-directional NAT**permet à des machines distantes d'accéder à des machines du réseau privé, et ce directement contrairement au Port forwarding.
+**Bi-directional NAT** permet à des machines distantes d'accéder à des machines du réseau privé, et ce directement contrairement au Port forwarding.
 Le principe fait appel au service DNS pour interpréter les requêtes; celles-ci sont initiées par la machine distante et reçues par le NAT. La passerelle répond par sa propre IP tout en gardant en mémoire l'association entre l'IP distante et l'IP requise pour le service, les paquets provenant de la machine distante seront alors transférés vers la machine correspondante.
 Pb: utilise DNS qui peut être coûteux pour un utilisateur de base mais se révèle utilise pour une companie interconnectant plusieurs réseaux privés
 
@@ -95,10 +114,17 @@ inc:
 
 * les machines externes ne verront que l'adresse de la passerelle et ne pourront pas se co directement aux machines locales (résolu avec les techniques plus évoluées mais elles sont + coûteuses et peu accessibles)
 * pb de sécurité
+* diminution des perf (ré-encapluse L3 voir L4, recalcule les checksums)
 
 
-### **Étudier PAT**
 ### **ACL**
+
+ ip sources qu'on autorise à être traduit
+
+	R1(config)#access-list 1 deny 192.168.1.100
+	R1(config)#access-list 1 permit 192.168.1.0 0.0.0.255
+
+
 ### **cmds de configs (prosit)**
 
 config un NAT:
@@ -110,24 +136,49 @@ première chose à faire : indiquer au routeur l(es) interface(s) d'entrée et c
 
 config statique : on indique au NAT que l'adresse privée doit être traduite par la publique à la sortie et l'inverse à l'entrée 
 
-	R1(config)#ip nat inside source static 192.168.1.100 201.49.10.30
+	R1(config)#ip nat inside source static *local-ip* *global-ip*
 
 check la table NAT (le log)
 
 	R1#show ip nat translations
 
-NAT avec pool d'adresses:
+NAT avec pool d'adresses (dynamique):
 
-	R1(config)#ip nat pool POOL-NAT-LAN2 201.49.10.17 201.49.10.30 netmask 255.255.255.240
+	R1(config)#ip nat pool *name* *start-ip* *end-ip* netmask *mask*
 
-on créé une plage d'adresse nommée POOL-NAT-LAN2 utilisant les adresse 201.49.10.17-30
+on créé une plage d'adresse nommée *name* utilisant les adresses de la range
 
-on défini ensuite les ip sources qu'on peut traduire
+on défini ensuite les ip sources qu'on peut traduire (on créé l'ACL)
 
 	R1(config)#access-list 1 deny 192.168.1.100
 	R1(config)#access-list 1 permit 192.168.1.0 0.0.0.255
 
-ici on bann 192.168.1.100
+ici on autorise le pool 192.168.1.0/24 moins 192.168.1.100
+
+on lie ensuite l'ACL au pool
+
+	R1(config)#ip nat inside source list *list number* pool *pool-name*
+on config le NAT en indiquant d'utiliser les IP du pool *pool-name* pour traduire les adresses de l'ACL *ACL number*
+/!\ si il y a plus de machines privées que d'ip publiques il faut ajouter "overload" à la in de la commande, cela permet d'activer le PAT
+
+on identifie ensuite les interfaces:
+
+	interface *interface* ip nat inside|outside
+
+config NAT dynamique sans pool:
+
+identifier les @ sources (créer l'ACL) 
+	
+	R1(config)#access-list 2 permit 192.168.0.0 0.0.0.255
+
+config le NAT pour traduire les adresse de l'ACL et les remplacer par l'IP de s'interface serial 0/0
+
+	R1(config)#ip nat inside source list 2 interface serial 0/0 overload
+
+
+pour reset tout:
+
+	R1#clear ip nat translation *
 
 ## Réalisation:
 
