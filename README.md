@@ -4,10 +4,15 @@
 mots clés :
 
 **NAT dynamique :** plusieurs @IP publique & privés (cf en bas)
-**surcharge NAT :**  Il s'agit d'une entrée de table de traduction qui contient des informations d'@IP et des ports de source/ de destination, appellée PAT ou surcharge. PAT, c'est quand le FAI fournit plusieurs @publiques, on l'utilise pour configurer et utiliser un pool. On divise les ports par @IP globales en différentes plages.
+
+**surcharge NAT :**  C'est un PAT
+
 **pool adresses publiques** = piscine d'@ publiques = plusieurs @IP publiques réservés.
+
 **même adresses publiques :** /
+
 **requêtes WEB** : /
+
 **adressage privé** : Qui est unique sur le réseau local.
 
 contexte :
@@ -59,6 +64,8 @@ On retrouve dans le NAT quatre types d'adresses :
 - **Outside local address** : @IP d'un hôte telle qu'elle apparaît aux hôtes d'un réseau internet. Il ne s'agit pas nécessairement d'une @ légimite routable.
 - **Outside global address** : @IP réeele routable d'un hôte qui se situe à l'extérieur du réseau du routeur NAT.
 
+![](https://blog.nicolargo.com/wp-content/uploads/2011/07/NAT.png)
+
 
 **NAT BASIQUE**
 
@@ -78,7 +85,6 @@ Pour se faire, NAT concerne une trace plus complète des paramètres de chaque c
 - @Source (La majorité du temps, les paquets viennent de l'interne vers l'externe), permettant d'identifier la machine à l'origine.
 - Protocole supérieur : Regarder les protocoles de transport (couche 4), en fonction de l'utilité, NAT peut les catégoriser et les reconnaître.
 - Le port : Grâce aux n° de ports, le NAT pourra faire la différence entre des paquets entrants qui représentent la même IP source, le même protocole de transport, mais un n° de port différent.
-
 
 Si les 3 infos sont les même, le NAT éffectue une translation de port & d'adresse pour identifier de manière certaine : Cela consiste à modifier les paramètres de la connexion avec la machine distance de façon à utiliser le port voulu sur la passerelle ou se situe le NAT.
 
@@ -166,3 +172,18 @@ https://www.ciscomadesimple.be/2013/04/06/configuration-du-nat-sur-un-routeur-ci
 *R1(config)#ip nat inside source list 2 interface serial 0/0 overload*
 
 -> debug avec debug ip packets
+
+## 5 - Qu'est ce qu'un PAT :
+
+![](https://blog.nicolargo.com/wp-content/uploads/2011/07/PAT.png)
+
+1 @ IP publique
+5 @ Privées
+
+Quand une des @ envoie un requête vers le port 1044, le NAT :
+OK je convertit vers une @ + n° de PORT
+
+Si deux @ demande le même port, le deuxième aura n°port +1
+
+
+
