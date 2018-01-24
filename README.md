@@ -178,9 +178,13 @@ https://www.ciscomadesimple.be/2013/04/06/configuration-du-nat-sur-un-routeur-ci
 ![](https://blog.nicolargo.com/wp-content/uploads/2011/07/PAT.png)
 
 1 @ IP publique
+
+&
+
 5 @ Privées
 
 Quand une des @ envoie un requête vers le port 1044, le NAT :
+
 OK je convertit vers une @ + n° de PORT
 
 Si deux @ demande le même port, le deuxième aura n°port +1
